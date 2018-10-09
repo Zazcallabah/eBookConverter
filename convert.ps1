@@ -1,15 +1,9 @@
-#load settings file
-#	path to dedrm
-#		if missing, alert for https://github.com/apprenticeharper/DeDRM_tools/archive/master.zip
-#	path to decrypted kindle storage
-#	path to regular ebook storage
-#	output folder for regular ebooks
-#	output folder for kindle books
-#	output folder for final library
-#check for python
-#check for calibre
-param([switch]$runTests)
 
+param(
+	[switch]$generateSettings,
+	[switch]$fixKindleRender,
+	[switch]$runTests
+)
 
 $script:settingsFile = "$PSScriptRoot\settings.json"
 
@@ -289,7 +283,7 @@ function ToHtml
 	$fromfolder = NormalizePath (GetSettingsPath $from)
 	$tofolder = NormalizePath (GetSettingsPath $to)
 	$converted = @()
-	ls $fromfolder -File | %{
+	ls $fromfolder -File | %{ 
 		$result = & "$PSScriptRoot\Convert-ToHtml.ps1" $_.FullName $tofolder (GetEbookConvert)
 		if($result)
 		{
@@ -299,19 +293,32 @@ function ToHtml
 	return $converted
 }
 
-if(!$runTests)
+if($runTests)
+{
+	return
+}
+
+if( $generateSettings )
 {
 	LoadSettings
-	if( !(Test-Path (GetSettingsPath "kindlesource")) )
-	{
-		Write-warning "Kindle storage folder not found, skipping decrypt"
-	}
-	else
-	{
-		Write-Host "Decrypting kindle ebooks"
-		ImportKindleBooks
-	}
-	write-host "converting to html"
-	ToHtml -from "decryptedkindle" -to "outkindle"
-	ToHtml -from "ebooks" -to "outregular"
+	return
 }
+if( $fixKindleRender )
+{
+	EnsureKindleApp
+	return
+}
+
+LoadSettings
+if( !(Test-Path (GetSettingsPath "kindlesource")) )
+{
+	Write-warning "Kindle storage folder not found, skipping decrypt"
+}
+else
+{
+	Write-Host "Decrypting kindle ebooks"
+	ImportKindleBooks
+}
+write-host "converting to html"
+ToHtml -from "decryptedkindle" -to "outkindle"
+ToHtml -from "ebooks" -to "outregular"

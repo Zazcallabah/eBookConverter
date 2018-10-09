@@ -1,0 +1,8 @@
+{
+    "outkindle":  "$($Env:UserProfile)\\Dropbox\\books\\kindle_library",
+    "outregular":  "$($Env:UserProfile)\\Dropbox\\books\\library",
+    "kindlesource":  "$($Env:UserProfile)\\Documents\\My Kindle Content\\",
+    "ebooks":  "$($Env:UserProfile)\\Dropbox\\books\\ebooks",
+    "publishfolder":  "$PSScriptRoot\\published",
+    "decryptedkindle":  "$($Env:UserProfile)\\Dropbox\\books\\azw3"
+}
