@@ -231,11 +231,7 @@ function DeDrmAndImport
 	$target = NormalizePath (GetSettingsPath "decryptedkindle")
 	python $deDrmPath.Fullname $drmFile.FullName
 	$filter = Join-Path $drmFile.Directory "*_nodrm.*"
-	$filter | out-host
-	ls $filter | out-host
 	mv $filter $target
-	$target | out-host
-	ls $target | out-host
 }
 
 function ImportKindleBooks
