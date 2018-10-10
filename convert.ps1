@@ -12,12 +12,12 @@ function LoadSettings
 	if( ! (Test-Path $script:settingsFile) )
 	{
 		@{
-			"kindlesource" = "`$(`$Env:UserProfile)\Documents\My Kindle Content\"
-			"decryptedkindle" = "`$PSScriptRoot\storage\decryptedkindle";
-			"ebooks" = "`$PSScriptRoot\storage\ebooks";
-			"outregular" = "`$PSScriptRoot\output\ebooks";
-			"outkindle" = "`$PSScriptRoot\output\kindle";
-			"publishfolder" = "`$PSScriptRoot\published";
+			"sourceKindle" = "`$(`$Env:UserProfile)\Documents\My Kindle Content\"
+			"decryptedStorage" = "`$PSScriptRoot\storage\decryptedkindle";
+			"sourceEbooks" = "`$PSScriptRoot\storage\ebooks";
+			"library" = "`$PSScriptRoot\output\ebooks";
+			"kindleLibrary" = "`$PSScriptRoot\output\kindle";
+			"publishFolder" = "`$PSScriptRoot\published";
 		} | ConvertTo-Json | SC -Path $script:settingsFile
 	}
 	$script:settings = gc -Raw $script:settingsFile | ConvertFrom-Json
@@ -33,14 +33,14 @@ if($runTests)
 		It "is created if not exists" {
 			LoadSettings
 			$script:settings | should not be $null
-			$script:settings.publishfolder | should not be $null
+			$script:settings.publishFolder | should not be $null
 		}
 		It "is not replaced if already exists" {
-			$script:settings.ebooks = "aoeu"
+			$script:settings.sourceebooks = "aoeu"
 			$script:settings | convertTo-Json | sc -Path $script:settingsFile
 			$script:settings = $null
 			LoadSettings
-			$script:settings.ebooks | should be "aoeu"
+			$script:settings.sourceEbooks | should be "aoeu"
 		}
 		if( Test-Path "$($script:settingsFile).testbackup" )
 		{
@@ -65,11 +65,11 @@ if($runTests)
 {
 	Describe "GetSettingsPath" {
 		It "Expands string variables" {
-			$oldvalue = $script.settings.ebooks
-			$script:settings.ebooks = "`$PSScriptRoot"
-			$path = GetSettingsPath "ebooks"
+			$oldvalue = $script.settings.sourceebooks
+			$script:settings.sourceebooks = "`$PSScriptRoot"
+			$path = GetSettingsPath "sourceEbooks"
 			$path | should be "$PSScriptRoot"
-			$script:settings.ebooks = $oldvalue
+			$script:settings.sourceebooks = $oldvalue
 		}
 	}
 }
@@ -194,7 +194,7 @@ function FindFileIgnoreExt
 function FileAlreadyImported
 {
 	param($drmFile)
-	$target = NormalizePath (GetSettingsPath "decryptedkindle")
+	$target = NormalizePath (GetSettingsPath "decryptedStorage")
 	$existing = FindFileIgnoreExt $target "$($drmFile.BaseName)*_nodrm"
 	return $existing -ne $null
 }
@@ -208,10 +208,10 @@ if($runTests)
 			rm -R -Force $tmpfolder
 		}
 		mkdir $tmpfolder
-		$script:settings.decryptedkindle = Join-Path $tmpfolder "decrypted"
-		mkdir $script:settings.decryptedkindle -ErrorAction SilentlyContinue
+		$script:settings.decryptedStorage = Join-Path $tmpfolder "decrypted"
+		mkdir $script:settings.decryptedStorage -ErrorAction SilentlyContinue
 		It "can tell if file already imported" {
-			sc -Value "." -Path (Join-path $script:settings.decryptedkindle "aoeu-othercrap_nodrm.txt")
+			sc -Value "." -Path (Join-path $script:settings.decryptedStorage "aoeu-othercrap_nodrm.txt")
 			$test = new-object -TypeName System.IO.FileInfo -ArgumentList "aoeu.azw"
 			FileAlreadyImported $test | should be $true
 		}
@@ -228,7 +228,7 @@ function DeDrmAndImport
 	}
 	EnsurePython
 	$deDrmPath = GetDeDrmPath
-	$target = NormalizePath (GetSettingsPath "decryptedkindle")
+	$target = NormalizePath (GetSettingsPath "decryptedStorage")
 	python $deDrmPath.Fullname $drmFile.FullName
 	$filter = Join-Path $drmFile.Directory "*_nodrm.*"
 	mv $filter $target
@@ -236,7 +236,7 @@ function DeDrmAndImport
 
 function ImportKindleBooks
 {
-	$source = GetSettingsPath "kindlesource"
+	$source = GetSettingsPath "sourceKindle"
 	
 	ls -path $source -filter "*.azw" -Recurse | %{
 		DeDrmAndImport $_
@@ -252,19 +252,19 @@ if( $runTests )
 			rm -R -Force $tmpfolder
 		}
 		mkdir $tmpfolder -ErrorAction SilentlyContinue
-		$script:settings.decryptedkindle = Join-Path $tmpfolder "decrypted"
-		mkdir $script:settings.decryptedkindle
-		$script:settings.kindlesource = Join-Path $tmpfolder "encrypted"
-		mkdir $script:settings.kindlesource
+		$script:settings.decryptedStorage = Join-Path $tmpfolder "decrypted"
+		mkdir $script:settings.decryptedStorage
+		$script:settings.sourceKindle = Join-Path $tmpfolder "encrypted"
+		mkdir $script:settings.sourceKindle
 		ls "$PSScriptRoot\testbooks" | %{
-			$targetfolder = Join-Path $script:settings.kindlesource ($_.BaseName)
+			$targetfolder = Join-Path $script:settings.sourceKindle ($_.BaseName)
 			mkdir $targetfolder
 			cp $_.Fullname $targetFolder
 		}
 		
 		It "converts books" {
 			ImportKindleBooks
-			$result = ls $script:settings.decryptedkindle
+			$result = ls $script:settings.decryptedStorage
 			$result.Length | should be 2
 			$result[0].BaseName | should be "test-norender_nodrm"
 		}
@@ -306,7 +306,7 @@ if( $fixKindleRender )
 }
 
 LoadSettings
-if( !(Test-Path (GetSettingsPath "kindlesource")) )
+if( !(Test-Path (GetSettingsPath "sourceKindle")) )
 {
 	Write-warning "Kindle storage folder not found, skipping decrypt"
 }
@@ -316,5 +316,5 @@ else
 	ImportKindleBooks
 }
 write-host "converting to html"
-ToHtml -from "decryptedkindle" -to "outkindle"
-ToHtml -from "ebooks" -to "outregular"
+ToHtml -from "decryptedStorage" -to "kindleLibrary"
+ToHtml -from "sourceEbooks" -to "library"
