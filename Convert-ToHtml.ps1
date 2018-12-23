@@ -49,6 +49,11 @@ $errorjson=""
 			write-host "path: $source"
 			return;
 		}
+		if( !(Test-Path $staging) )
+		{
+			write-error "conversion failed, zip not found"
+			return
+		}
 		Write-host "Unzipping"
 		mv $staging "$staging.zip"
 		$tmpname = [system.io.path]::GetRandomFileName().Substring(0,8)

@@ -163,7 +163,7 @@ function EnsureKindleApp
 	}
 	if( test-path "$($env:LOCALAPPDATA)\Amazon\Kindle\application\renderer-test.exe" )
 	{
-		mv "$($env:LOCALAPPDATA)\Amazon\Kindle\application\renderer-test.exe" "$($env:LOCALAPPDATA)\Amazon\Kindle\application\renderer-test.deleted"
+		mv "$($env:LOCALAPPDATA)\Amazon\Kindle\application\renderer-test.exe" "$($env:LOCALAPPDATA)\Amazon\Kindle\application\renderer-test.deleted" -Force
 	}
 	return $true
 }
@@ -231,7 +231,15 @@ function DeDrmAndImport
 	$target = NormalizePath (GetSettingsPath "decryptedStorage")
 	python $deDrmPath.Fullname $drmFile.FullName
 	$filter = Join-Path $drmFile.Directory "*_nodrm.*"
-	mv $filter $target
+	ls $filter | ?{ $_.basename.length -gt 40 } | %{
+		$ext = $_.Extension
+		$base = $_.basename
+		if( $base -gt 40 )
+		{
+			$base = $base.substring(0,34).trim() + "_nodrm"
+		}
+		mv $_.Fullname (Join-Path $target "$base$ext")
+	}
 }
 
 function ImportKindleBooks
@@ -279,8 +287,9 @@ function ToHtml
 	$fromfolder = NormalizePath (GetSettingsPath $from)
 	$tofolder = NormalizePath (GetSettingsPath $to)
 	$converted = @()
+	$calibrelocation = GetEbookConvert
 	ls $fromfolder -File | %{ 
-		$result = & "$PSScriptRoot\Convert-ToHtml.ps1" $_.FullName $tofolder (GetEbookConvert)
+		$result = & "$PSScriptRoot\Convert-ToHtml.ps1" $_.FullName $tofolder $calibrelocation
 		if($result)
 		{
 			$converted += $_.Fullname
