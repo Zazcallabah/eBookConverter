@@ -57,15 +57,15 @@ if($runTests)
 function GetSettingsPath
 {
 	param($key)
-	
-	$ExecutionContext.InvokeCommand.ExpandString($script:settings."$key") 
+
+	$ExecutionContext.InvokeCommand.ExpandString($script:settings."$key")
 }
 
 if($runTests)
 {
 	Describe "GetSettingsPath" {
 		It "Expands string variables" {
-			$oldvalue = $script.settings.sourceebooks
+			$oldvalue = $script:settings.sourceebooks
 			$script:settings.sourceebooks = "`$PSScriptRoot"
 			$path = GetSettingsPath "sourceEbooks"
 			$path | should be "$PSScriptRoot"
@@ -79,7 +79,7 @@ function NormalizePath
 	param($path)
 	if( !(Test-Path $path))
 	{
-		mkdir $path
+		$result = mkdir $path
 	}
 	Resolve-Path $path
 }
@@ -147,7 +147,7 @@ function EnsurePython
 function GetEbookConvert
 {
 	$ebookconvert =  ls calibre -Recurse -Filter "ebook-convert.exe" | select -first 1 -ExpandProperty FullName
-		
+
 	if( $ebookconvert -eq $null )
 	{
 		throw "calibre cant be found, please install calibre-portable into the calibre folder"
@@ -186,7 +186,7 @@ if($runTests)
 function FindFileIgnoreExt
 {
 	param($folder,$fileName)
-	
+
 	$testpath = (Join-Path $folder $filename)
 	ls "$testpath.*"
 }
@@ -245,7 +245,7 @@ function DeDrmAndImport
 function ImportKindleBooks
 {
 	$source = GetSettingsPath "sourceKindle"
-	
+
 	ls -path $source -filter "*.azw" -Recurse | %{
 		DeDrmAndImport $_
 	}
@@ -269,14 +269,14 @@ if( $runTests )
 			mkdir $targetfolder
 			cp $_.Fullname $targetFolder
 		}
-		
+
 		It "converts books" {
 			ImportKindleBooks
 			$result = ls $script:settings.decryptedStorage
 			$result.Length | should be 2
 			$result[0].BaseName | should be "test-norender_nodrm"
 		}
-		
+
 		rm -R -Force $tmpfolder
 	}
 }
@@ -288,7 +288,7 @@ function ToHtml
 	$tofolder = NormalizePath (GetSettingsPath $to)
 	$converted = @()
 	$calibrelocation = GetEbookConvert
-	ls $fromfolder -File | %{ 
+	ls $fromfolder -File | %{
 		$result = & "$PSScriptRoot\Convert-ToHtml.ps1" $_.FullName $tofolder $calibrelocation
 		if($result)
 		{
