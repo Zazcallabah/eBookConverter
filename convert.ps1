@@ -231,10 +231,10 @@ function DeDrmAndImport
 	$target = NormalizePath (GetSettingsPath "decryptedStorage")
 	python $deDrmPath.Fullname $drmFile.FullName
 	$filter = Join-Path $drmFile.Directory "*_nodrm.*"
-	ls $filter | ?{ $_.basename.length -gt 40 } | %{
+	ls $filter | %{
 		$ext = $_.Extension
 		$base = $_.basename
-		if( $base -gt 40 )
+		if( $base.length -gt 40 )
 		{
 			$base = $base.substring(0,34).trim() + "_nodrm"
 		}
