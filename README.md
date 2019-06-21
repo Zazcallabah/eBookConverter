@@ -16,7 +16,7 @@ The converted ebooks have the following features that normal ebooks dont:
 
 ## Instructions
 
-* Install python2.7 and pycrypto, make sure python.exe is available on the path
+* Install python2.7 and pycrypto, and possibly "pip install pylzma", make sure python.exe is available on the path
 * Install calibre-portable into the calibre folder.
 * run `convert.ps1 -generateSettings`, edit the resulting settings.json file to your liking
 * run `convert.ps1`
