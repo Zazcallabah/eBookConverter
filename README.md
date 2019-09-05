@@ -21,6 +21,22 @@ The converted ebooks have the following features that normal ebooks dont:
 * run `convert.ps1 -generateSettings`, edit the resulting settings.json file to your liking
 * run `convert.ps1`
 
+### Linux
+
+I haven't found a way to get the encrypted azw file on linux, only windows. However, if you have an azw you wish to decrypt, the following prerequisites must be completed:
+
+* install python 2.7 and make sure `python` points to it
+* install calibre: https://download.calibre-ebook.com/linux-installer.sh 
+* download latest release of dedrm from apprentice harpers github
+* `calibre-customize --add ./DeDRM_tools_6.6.3/Obok_calibre_plugin/obok_plugin.zip`
+* `calibre-customize --add ./DeDRM_tools_6.6.3/DeDRM_calibre_plugin/DeDRM_plugin.zip` 
+* `sudo apt install python-tk`
+* `pip install pylzma`
+
+then run `python ./DeDRM_tools_6.6.3/DeDRM_Windows_Application/DeDRM_App/DeDRM_lib/DeDRM_App.pyw <azw path>` to decrypt azw book
+
+`Convert-ToHtml.ps1` should work as expected even on linux.
+
 ## settings.json
 
 Values in the settings file will have variables expanded before being used. This means you can use $($Env:UserProfile) to refer
