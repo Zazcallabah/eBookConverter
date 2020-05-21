@@ -29,7 +29,7 @@ $errorjson=""
 		write-host "Converting to html"
 		(get-host).UI.RawUI.ForegroundColor = "Gray"
 		$errorfound = $false;
-		& $ebookconverterpath $source $staging --insert-blank-line --embed-font-family "Lucida Sans Unicode" --insert-blank-line-size 2 --unsmarten-punctuation --minimum-line-height 140 --font-size-mapping "12,12,14,16,18,20,22,24" --filter-css "font-family,color,background-color" --extra-css "body{max-width:1000px;margin:auto !important;text-align:left !important;}" 2>&1 | %{
+		& $ebookconverterpath $source $staging --insert-blank-line --embed-font-family "Lucida Sans Unicode" --insert-blank-line-size 2 --unsmarten-punctuation --minimum-line-height 140 --font-size-mapping "12,12,14,16,18,20,22,24" --filter-css "font-family,color,background-color,line-height" 2>&1 | %{
 			$data = $_.ToString() -replace "[^ -~]",""
 			if($_ -is [System.Management.Automation.ErrorRecord])
 			{
@@ -60,13 +60,19 @@ $errorjson=""
 		[System.IO.Compression.ZipFile]::ExtractToDirectory("$staging.zip", $tmpfolder+$tmpname)
 		$item = New-Item "$tmpfolder$tmpname\$base" -type file
 		$r = [regex]"<title>([^<]*)</title>"
-		$result = $r.Matches((gc "$tmpfolder$tmpname\index.html")[0])
+		$indexfilename = "$tmpfolder$tmpname\index.html"
+		get-content "$PSScriptRoot\version.txt" >> $indexfilename
+		$result = $r.Matches((gc $indexfilename)[0])
 		$name = [System.Web.HttpUtility]::HtmlDecode($result.Groups[1].Value) -replace "[^ -~]","" -replace "/|<|\\|:|<|>|\||\*|""|\?",""
 
 		Write-Host "adding custom style"
 		$style = gc -Raw "$tmpfolder$tmpname\style.css" -encoding utf8
 		$style += "a { color:#5998d6; }
+p{ line-height:1.4em;}
 body {
+max-width:1000px;
+margin:auto !important;
+text-align:left !important;
 color:#ddd;
 background-color:#333;
 font-family: 'Lucida Grande','Lucida Sans Unicode',Verdana,Helvetica,sans-serif

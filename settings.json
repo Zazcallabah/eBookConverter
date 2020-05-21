@@ -1,8 +1,8 @@
 {
-    "kindleLibrary":  "$($Env:UserProfile)\\Dropbox\\books\\kindle_library",
-    "library":  "$($Env:UserProfile)\\Dropbox\\books\\library",
+    "decryptedStorage":  "$PSScriptRoot\\storage\\decryptedkindle",
     "sourceKindle":  "$($Env:UserProfile)\\Documents\\My Kindle Content\\",
-    "sourceEbooks":  "$($Env:UserProfile)\\Dropbox\\books\\ebooks",
-    "publishFolder":  "\\\\omicron\\backup\\books\\",
-    "decryptedStorage":  "$($Env:UserProfile)\\Dropbox\\books\\azw3"
+    "publishFolder":  "$PSScriptRoot\\published",
+    "sourceEbooks":  "$PSScriptRoot\\storage\\ebooks",
+    "library":  "$PSScriptRoot\\output\\ebooks",
+    "kindleLibrary":  "$PSScriptRoot\\output\\ebooks"
 }
